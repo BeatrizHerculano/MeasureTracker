@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+
 struct NewMeasured: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss

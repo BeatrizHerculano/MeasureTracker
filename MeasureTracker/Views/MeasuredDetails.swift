@@ -12,7 +12,7 @@ import Combine
 
 struct MeasuredDetails: View {
     @Environment(\.modelContext) private var modelContext
-    @State var measured: Measured
+    var measured: Measured
     
     var body: some View {
         VStack {

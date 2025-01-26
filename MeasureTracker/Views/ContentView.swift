@@ -10,16 +10,21 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var measuredItems: [Measured]
+    
+    @Query(sort: \Measured.name, order: .forward)
+    private var measuredItems: [Measured]
+    
+    @State var selection: Measured?
     
     var body: some View {
         NavigationSplitView {
             NavigationStack{
-                List {
+                List(selection: $selection) {
                     ForEach(measuredItems) { item in
-                        NavigationLink(destination: MeasuredDetails(measured: item)) {
+                        NavigationLink(value: item) {
                             Text(item.name)
                         }
+                        
                     }
                     .onDelete(perform: deleteItems)
                 }
@@ -37,7 +42,11 @@ struct ContentView: View {
                 }
             }
         } detail: {
-            Text("Select an item")
+            if let selection = selection {
+                NavigationStack {
+                    MeasuredDetails(measured: selection)
+                }
+            }
         }
     }
     
@@ -52,5 +61,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: [Measurement.self, Measured.self], inMemory: true)
 }
