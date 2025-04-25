@@ -11,8 +11,9 @@ import SwiftData
 import Combine
 
 struct MeasuredDetails: View {
-    @Environment(\.modelContext) private var modelContext
-    var measured: Measured
+    @Environment(\.dismiss) private var dismiss
+    @Bindable var measured: Measured
+    @State var showAddMeasurement = false
     
     var body: some View {
         VStack {
@@ -25,10 +26,12 @@ struct MeasuredDetails: View {
                                 y: .value("Measurement", $0.size)
                             )
                             .lineStyle(.init(lineWidth: 5,lineCap: .round, lineJoin: .round))
+                            .foregroundStyle(Color(hex: measured.color) ?? .blue)
                             PointMark(
                                 x: .value("Date", $0.measuredDate),
                                 y: .value("Measurement", $0.size)
                             )
+                            .foregroundStyle(Color(hex: measured.color) ?? .blue)
                             .symbolSize(120)
                         }
                         .padding()
@@ -49,24 +52,27 @@ struct MeasuredDetails: View {
                     }
                 }
             } else {
-                Text("Adicione um item em \(measured.name)")
-                NavigationLink {
-                    addNewMeasurment()
-                } label: {
-                    Text("Adicionar Medição")
-                }
-                .buttonStyle(.borderedProminent)
-                .padding()
+                RoundedRectangle(cornerRadius: 20)
+                    .frame(width: 100, height: 100)
+                    .foregroundStyle(Color(hex: measured.color) ?? .blue)
+                    .overlay {
+                        Image(systemName: measured.icon)
+                            .resizable()
+                            .padding(2)
+                            .frame(width: 80, height: 80)
+                            .foregroundColor(measured.getIconColor())
+                    }
+                
+                    
+                Text("Clique no + para adicionar")
+                    .font(.title2)
             }
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                EditButton()
-            }
             ToolbarItem {
                 NavigationStack {
-                    NavigationLink {
-                        addNewMeasurment()
+                    Button {
+                        showAddMeasurement = true
                     } label: {
                         Label("Add Item", systemImage: "plus")
                     }
@@ -75,6 +81,13 @@ struct MeasuredDetails: View {
         }
         .navigationTitle(measured.name)
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showAddMeasurement) {
+            NavigationStack {
+                NewMeasurement(measured: measured)
+            }
+            .presentationDetents([.medium, .large])
+        }
+        
     }
     
     func addNewMeasurment() -> some View {
@@ -93,14 +106,12 @@ struct MeasuredDetails: View {
     
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
-            for index in offsets {
-                modelContext.delete(measured.measures[index])
-            }
+            measured.measures.remove(atOffsets: offsets)
         }
     }
 }
 
 #Preview {
-    MeasuredDetails(measured: .init(name: "Teste de medida", unit: .cm))
+    MeasuredDetails(measured: .init(name: "Teste de medida", unit: .cm, icon: Icon.folder.rawValue, color: Color.blue, iconColor: false))
         .modelContainer(for: [Measurement.self, Measured.self], inMemory: true)
 }

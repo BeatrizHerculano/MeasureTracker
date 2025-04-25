@@ -7,56 +7,82 @@
 
 import SwiftUI
 import SwiftData
+import SFSymbolsPicker
+
+
 
 struct NewMeasured: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-
+    
     @State private var newMeasuredName: String = ""
     @State private var newMeasuredUnit: Measured.Units = .mm
-
+    @State private var icon = Icon.arrowUpCircle
+    @State private var color = Color.blue
+    @State private var iconColor = false
+    
     func createNewMeasured() {
-        modelContext.insert(Measured(name: newMeasuredName, unit: newMeasuredUnit))
+        let newMeasured = Measured(
+                   name: newMeasuredName,
+                   unit: newMeasuredUnit,
+                   icon: icon.rawValue,
+                   color: color,
+                   iconColor: iconColor
+               )
+               modelContext.insert(newMeasured)
+               
+               do {
+                   try modelContext.save()
+               } catch {
+                   print("Error saving context: \(error)")
+               }
+               
+               dismiss()
         dismiss()
     }
     
     var body: some View {
-        VStack {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Medir Algo novo")
-                    .font(.largeTitle)
-                Text("Cadastre um novo item para medir, pode ser uma parte do seu corpo, a altura dos seus filhos, o tamanho de alguma planta, quantidade de kilometros corridos...")
-                    .font(.body)
-                    .padding(.vertical)
+        Form {
+            Section(header: Text("O que voce quer medir?")) {
+                GroupBox {
+                    TextField("Colocar nome aqui...", text: $newMeasuredName)
+                }
             }
             
-            Form {
-                Text("O que voce quer medir?")
-                    .font(.headline)
-                TextField("Quadril", text: $newMeasuredName)
-                    .textFieldStyle(.plain)
-                    .padding()
-                
-                Text("Qual a unidade de medida?")
-                    .font(.headline)
-                
-                Picker("Selecione a unidade de medida", selection: $newMeasuredUnit) {
-                    ForEach(Measured.Units.allCases, id: \.id) { unit in
+            Section(header: Text("Qual a unidade de medida?")) {
+                GroupBox {
+                    Picker("Selecione a unidade de medida", selection: $newMeasuredUnit) {
+                        ForEach(Measured.Units.allCases, id: \.id) { unit in
                             Text(unit.rawValue)
                         }
                     }
-                .pickerStyle(.wheel)
+                    .pickerStyle(.segmented)
+                }
             }
             
-            Button(action: createNewMeasured) {
-                Text("Criar novo item")
-                    .font(.headline)
+            Section(header: Text("Qual Icone voce quer?")){
+                IconPicker(selection: $icon, color: $color, iconColor: $iconColor)
             }
-            .buttonStyle(.borderedProminent)
-            .padding()
+            
+            
         }
-        .padding(.horizontal)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Dismiss") {
+                    dismiss()
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Adicionar") {
+                    createNewMeasured()
+                }
+            }
+        }
+        .navigationTitle("Add Measured")
+        
+        
     }
+    
 }
 
 // preview with data and modelContainer for NewMeasure

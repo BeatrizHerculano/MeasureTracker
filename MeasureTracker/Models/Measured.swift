@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 @Model
 final class Measured: Identifiable {
@@ -23,9 +24,23 @@ final class Measured: Identifiable {
     @Relationship(deleteRule: .cascade, inverse:\Measurement.measured)
     var measures: [Measurement] = []
     var unit: Units
+    var icon: String
+    var color: String
+    var iconColor: Bool
     
-    init(name: String, unit: Units) {
+    init(name: String, unit: Units, icon: String, color: Color, iconColor: Bool) {
         self.name = name
         self.unit = unit
+        self.color = color.toHex() ?? "#000000"
+        self.iconColor = iconColor
+        self.icon = icon
     }
+    
+    func getIconColor() -> Color {
+        iconColor ? .white : .black
+    }
+}
+
+extension Measured {
+    
 }

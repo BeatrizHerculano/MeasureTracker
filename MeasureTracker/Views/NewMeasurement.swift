@@ -6,8 +6,12 @@
 //
 import SwiftUI
 
+struct LayoutConstants {
+    static let sheetIdealWidth = 400.0
+    static let sheetIdealHeight = 700.0
+}
+
 struct NewMeasurement: View {
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
     private var measured: Measured
@@ -30,15 +34,6 @@ struct NewMeasurement: View {
     }
     
     var body: some View {
-        VStack {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Medir Algo novo")
-                    .font(.largeTitle)
-                Text("Cadastre um novo item para medir, pode ser uma parte do seu corpo, a altura dos seus filhos, o tamanho de alguma planta, quantidade de kilometros corridos...")
-                    .font(.body)
-                    .padding(.vertical)
-            }
-            
             Form {
                 HStack{
                     TextField("Qual foi o valor medido?", value: $newMeasurmentSize, formatter: formatter)
@@ -46,8 +41,6 @@ struct NewMeasurement: View {
                         .padding()
                     Text(measured.unit.rawValue)
                 }
-                
-                
                 DatePicker(
                     "Qual dia foi medido?",
                     selection: $newMeasurmentDate,
@@ -55,19 +48,23 @@ struct NewMeasurement: View {
                 )
                 .datePickerStyle(.automatic)
             }
-            
-            Button(action: createNewMeasurment) {
-                Text("Criar novo item")
-                    .font(.headline)
+            .toolbar{
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Dismiss") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Adicionar") {
+                        createNewMeasurment()
+                    }
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .padding()
-        }
-        .padding(.horizontal)
+            .navigationTitle("Add Measured")
     }
 }
 
 #Preview {
-    NewMeasurement(measured: .init(name: "Corridas", unit: .km))
+    NewMeasurement(measured: .init(name: "Corridas", unit: .km, icon: Icon.person.rawValue, color: Color.blue, iconColor: false))
         .modelContainer(for: [Measurement.self, Measured.self], inMemory: true)
 }

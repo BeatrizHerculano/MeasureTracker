@@ -14,17 +14,16 @@ struct ContentView: View {
     @Query(sort: \Measured.name, order: .forward)
     private var measuredItems: [Measured]
     
+    @State private var showAddMeasured = false
     @State var selection: Measured?
+    
     
     var body: some View {
         NavigationSplitView {
             NavigationStack{
                 List(selection: $selection) {
                     ForEach(measuredItems) { item in
-                        NavigationLink(value: item) {
-                            Text(item.name)
-                        }
-                        
+                        MeasuredItem(measured: item)
                     }
                     .onDelete(perform: deleteItems)
                 }
@@ -34,10 +33,10 @@ struct ContentView: View {
                     EditButton()
                 }
                 ToolbarItem {
-                    NavigationLink {
-                        NewMeasured()
+                    Button {
+                        showAddMeasured = true
                     } label: {
-                        Label("Add Item", systemImage: "plus")
+                        Label("Add measured", systemImage: "plus")
                     }
                 }
             }
@@ -48,12 +47,26 @@ struct ContentView: View {
                 }
             }
         }
+        .sheet(isPresented: $showAddMeasured) {
+            NavigationStack {
+                NewMeasured()
+            }
+        }
     }
     
     private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(measuredItems[index])
+        
+        offsets.forEach { index in
+            
+            let itemToDelete = measuredItems[index]
+            
+            modelContext.delete(itemToDelete)
+            
+            
+            do {
+                try modelContext.save()
+            } catch {
+                print("Error saving context: \(error)")
             }
         }
     }
